@@ -1,0 +1,20 @@
+# Build artifacts
+bin/
+build/
+dist/
+*.egg-info/
+
+# Python
+.pytest_cache/
+.venv/
+__pycache__/
+*.pyc
+coverage.out
+
+# Editors
+.DS_Store
+.idea/
+.vscode/
+
+# Local repo guidance
+skills/

@@ -1,0 +1,15 @@
+# 冒烟用覆盖配置：只注册一个 mock 本地上游（kind=local 以模拟“本地免费”档）
+data_dir: ./data-smoke
+
+registry:
+  backends:
+    - id: mock-openai
+      kind: local
+      type: openai_compatible
+      base_url: http://127.0.0.1:11499/v1
+      enabled: true
+      auto_discover: false
+      default_model: mock:7b
+      capabilities: [coding, general, vision]
+      cost_per_mtok_in_usd: 0
+      cost_per_mtok_out_usd: 0

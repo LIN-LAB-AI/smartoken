@@ -1,0 +1,113 @@
+# 开发配置：本地 uncensored-27b + DeepSeek + 智谱 GLM
+# 层级设计（local-first + 中国优先）：
+#   L0/L1（简单/一般任务）→ 本地 uncensored-27b（免费、隐私）
+#   L2（复杂任务）→ DeepSeek / GLM 云端
+# 密钥在 .env（gitignore）：SMARTOKEN_LOCAL_KEY / SMARTOKEN_DEEPSEEK_KEY / SMARTOKEN_GLM_KEY
+# 用法: smartoken start --config config/dev-china.yaml
+server:
+  port: 8787
+
+data_dir: ./data-dev
+audit_retention_days: 7
+
+registry:
+  backends:
+  - id: local-uncensored
+    kind: local
+    type: openai_compatible
+    base_url: http://127.0.0.1:88/v1
+    api_key_env: SMARTOKEN_LOCAL_KEY
+    enabled: true
+    default_model: uncensored-27b
+    capabilities: [coding, general]
+    cost_per_mtok_in_usd: 0
+    cost_per_mtok_out_usd: 0
+    healthy_ttl_s: 5
+
+  - id: ollama-local
+    kind: local
+    type: ollama
+    base_url: http://127.0.0.1:11434
+    enabled: true
+    auto_discover: true
+    default_model: ''
+    capabilities: [coding, general, vision]
+    cost_per_mtok_in_usd: 0
+    cost_per_mtok_out_usd: 0
+    healthy_ttl_s: 5
+
+  - id: deepseek
+    kind: cloud
+    type: openai_compatible
+    base_url: https://api.deepseek.com/v1
+    api_key_env: SMARTOKEN_DEEPSEEK_KEY
+    enabled: true
+    default_model: deepseek-chat
+    capabilities: [coding, general]
+    cost_per_mtok_in_usd: 0.28
+    cost_per_mtok_out_usd: 1.10
+    healthy_ttl_s: 15
+
+  - id: zhipu-glm
+    kind: cloud
+    type: openai_compatible
+    base_url: https://open.bigmodel.cn/api/paas/v4
+    api_key_env: SMARTOKEN_GLM_KEY
+    enabled: true
+    default_model: glm-4.5
+    capabilities: [coding, general, vision]
+    cost_per_mtok_in_usd: 0.70
+    cost_per_mtok_out_usd: 1.90
+    healthy_ttl_s: 15
+
+    # ---- 通义模板：填 key + enabled: true 即可热启用 ----
+  - id: qwen-dashscope
+    kind: cloud
+    type: openai_compatible
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    api_key_env: SMARTOKEN_DASHSCOPE_KEY
+    enabled: true
+    default_model: qwen-plus
+    capabilities: [coding, general, vision]
+    cost_per_mtok_in_usd: 0.40
+    cost_per_mtok_out_usd: 1.20
+    healthy_ttl_s: 15
+
+policies:
+  active_scenario: auto        # auto | coding | talking | general
+  difficulty_map:
+    L0: [local]
+    L1: [local, cloud]
+    L2: [cloud, local]
+
+  scenarios:
+    auto: {}
+    talking:
+      L0: [local]
+      L1: [local]
+      L2: [local, cloud]
+    coding:
+      L0: [local]
+      L1: [local, cloud]
+      L2: [cloud, local]
+    general:
+      L0: [local]
+      L1: [local, cloud]
+      L2: [cloud, local]
+
+  classifier:
+    l2_stacktrace_words: [traceback, stack trace, segmentation fault, crash log, 堆栈, 报错, 异常]
+    l2_architecture_words: [architecture, design, refactor, migration, codebase-wide, 架构, 重构, 迁移, 模块划分, 系统设计, 代码库]
+
+identity_profiles: {}
+
+# 偏好表示例（取消注释即生效）
+preference:
+  categories: {}
+  # coding: [local-uncensored, deepseek]
+  # general: [local-uncensored, zhipu-glm]
+
+budget:
+  enabled: false
+  cloud_daily_usd: 0.0
+  max_cloud_cost_usd_per_req: 0.0

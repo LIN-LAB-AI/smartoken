@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# Smartoken 运行时数据
+data/
+data*/
+data-*/*.ndjson
+data-*/live.json
+*.ndjson
+
+# 环境与编辑器
+.env
+.idea/
+.vscode/

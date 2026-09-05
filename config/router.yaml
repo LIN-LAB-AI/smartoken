@@ -1,0 +1,120 @@
+# Smartoken 默认配置（DEFAULT_CONFIG，会被用户文件深合并覆盖）
+# 产品取向（2026-09）：中国模型优先，不做 Anthropic 协议/品牌接入。
+#   - ollama-local 默认启用：本地 Qwen 等模型自动发现。
+#   - 国产云端成员（DeepSeek / 智谱 GLM / 通义 Qwen）默认 enabled: false，
+#     填好对应 API key 环境变量并改为 true 即可热启用 —— 路由逻辑零改动。
+#   - 海外厂商不作为内置模板提供；用户可自行按 openai_compatible 添加。
+
+server:
+  host: 127.0.0.1
+  port: 8787
+
+data_dir: ./data          # audit/live 数据目录（可用 SMARTOKEN_HOME 覆盖）
+audit_retention_days: 7   # 历史用量默认保留天数，启动时自动清理过期文件
+
+# “若全走旗舰需花多少”的省钱估算参照：默认按国产旗舰档估算价（占位，请按实际套餐改）
+flagship_reference:
+  id: china-flagship-ref
+  input_per_mtok_usd: 0.30
+  output_per_mtok_usd: 1.20
+
+registry:
+  backends:
+    - id: ollama-local
+      kind: local
+      type: ollama
+      base_url: http://127.0.0.1:11434   # Ollama 根地址；outbound 走 {base}/v1/chat/completions
+      enabled: true
+      auto_discover: true                # 探测 /api/tags 自动纳管本地模型（推荐本地拉 Qwen 系）
+      default_model: ""                  # 留空时按类别启发式选已发现模型（coding→coder 优先）
+      capabilities: [coding, general, vision]
+      cost_per_mtok_in_usd: 0
+      cost_per_mtok_out_usd: 0
+      healthy_ttl_s: 5
+
+    # ---- 国产云端模板（中国优先；默认关闭，填 key + enabled: true 启用）----
+    - id: deepseek
+      kind: cloud
+      type: openai_compatible
+      base_url: https://api.deepseek.com/v1
+      api_key_env: SMARTOKEN_DEEPSEEK_KEY
+      enabled: false
+      default_model: deepseek-chat
+      capabilities: [coding, general]
+      cost_per_mtok_in_usd: 0.28          # 估算，按实际套餐调整
+      cost_per_mtok_out_usd: 1.10
+
+    - id: zhipu-glm
+      kind: cloud
+      type: openai_compatible
+      base_url: https://open.bigmodel.cn/api/paas/v4
+      api_key_env: SMARTOKEN_GLM_KEY
+      enabled: false
+      default_model: glm-4.5
+      capabilities: [coding, general, vision]
+      cost_per_mtok_in_usd: 0.70          # 估算，按实际套餐调整
+      cost_per_mtok_out_usd: 1.90
+
+    - id: qwen-dashscope
+      kind: cloud
+      type: openai_compatible
+      base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api_key_env: SMARTOKEN_DASHSCOPE_KEY
+      enabled: false
+      default_model: qwen-plus
+      capabilities: [coding, general, vision]
+      cost_per_mtok_in_usd: 0.40          # 估算，按实际套餐调整
+      cost_per_mtok_out_usd: 1.20
+
+    # 免费档示例（国内若有稳定免费额度成员在此加 kind: cloud-free，cost 全 0）
+    # - id: free-tier
+    #   kind: cloud-free
+    #   type: openai_compatible
+    #   base_url: https://...
+    #   api_key_env: SMARTOKEN_FREE_KEY
+    #   enabled: false
+    #   default_model: ""
+    #   capabilities: [general]
+    #   cost_per_mtok_in_usd: 0
+    #   cost_per_mtok_out_usd: 0
+
+policies:
+  # 难度 → 候选后端 kind 顺序（靠前者优先；仅取健康成员）
+  # 同一 kind 内按 registry.backends 声明顺序取，想换“谁优先”就调 yaml 顺序。
+  active_scenario: auto        # auto | coding | talking | general（GUI 里可切换）
+  difficulty_map:
+    L0: [local]
+    L1: [local, cloud-free]
+    L2: [cloud, cloud-free, local]
+
+  # 场景套餐：GUI 语义档（talking=聊天尽量本地省钱；coding=复杂代码上云强模型）
+  scenarios:
+    auto: {}
+    talking:
+      L0: [local]
+      L1: [local]
+      L2: [local, cloud]
+    coding:
+      L0: [local]
+      L1: [local, cloud]
+      L2: [cloud, local]
+    general:
+      L0: [local]
+      L1: [local, cloud]
+      L2: [cloud, local]
+
+  # 分类器规则权重（T1 用；含中文信号词）
+  classifier:
+    l2_stacktrace_words: [traceback, stack trace, segmentation fault, crash log, 堆栈, 报错, 异常]
+    l2_architecture_words: [architecture, design, refactor, migration, codebase-wide, 架构, 重构, 迁移, 模块划分, 系统设计, 代码库]
+
+identity_profiles: {}    # hash(system_prompt) → backend_id；P0 命中则整单走该后端
+
+# 偏好表：category → [backend_id, ...]（用户可声明 coding 优先谁；留空 = 不干预）
+preference:
+  categories: {}
+
+budget:
+  enabled: false
+  cloud_daily_usd: 0.0
+  max_cloud_cost_usd_per_req: 0.0

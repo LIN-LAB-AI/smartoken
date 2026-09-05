@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "routelabs-router"
+version = "0.5.0"
+description = "Local-first OpenAI-compatible and Anthropic-compatible runtime for hybrid LLM routing, verification-aware escalation, and privacy-aware local execution."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["llm", "routing", "local-ai", "ollama", "fastapi", "agentic-ai", "openai-compatible", "privacy", "agents"]
+authors = [
+  { name = "Sai Sandeep Kantareddy", email = "saisandeep.kantareddy@gmail.com" }
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "fastapi>=0.115.0,<1.0.0",
+  "uvicorn>=0.30.0,<1.0.0",
+  "pydantic>=2.8.0,<3.0.0",
+  "PyYAML>=6.0.2,<7.0.0",
+  "httpx>=0.27.0,<1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.27.0,<1.0.0",
+  "pytest>=8.3.0,<9.0.0",
+]
+observability = [
+  "opentelemetry-api>=1.28.0,<2.0.0",
+]
+
+[project.scripts]
+router = "routelabs_router.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/routelabsai/router"
+Repository = "https://github.com/routelabsai/router"
+Issues = "https://github.com/routelabsai/router/issues"
+Documentation = "https://github.com/routelabsai/router#readme"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+routelabs_router = ["profiles/*.yaml"]
