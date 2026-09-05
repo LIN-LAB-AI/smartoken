@@ -1,6 +1,7 @@
 # Smartoken — 面向终端的任务感知模型路由器（v0.1）
 
 设计文档见 [`v1-design.md`](v1-design.md)；竞品源码参考在 [`research/refs/`](research/refs/)。
+开源协议：**MIT**（[`LICENSE`](LICENSE)，Copyright © 2026 LIN-LAB-AI）。提交 PR 即视为同意在本协议下贡献。
 
 ---
 
@@ -48,7 +49,7 @@ smartoken-gui        # 若命令不可用：python -m smartoken_gui.app
 ### 6. 隐私与使用须知
 - 请求只发给你配置的模型后端；识别与决策全程本地；审计只存本机、**不含对话原文**。
 - 你的 `.env`（真实密钥）已在 `.gitignore` 排除——**不要把它提交或发给任何人**。
-- 本项目当前**未附开源许可**：仅供评估测试，请勿再分发/商用。
+- 本项目以 **MIT License** 开源（见 [`LICENSE`](LICENSE)）：可自由使用/修改/再分发/商用，需保留版权声明。
 - 测试中发现 bug 或想提需求 → 仓库 **Issues** 反馈，注明：操作系统、Python 版本、报错文本、审计行。
 
 ---
