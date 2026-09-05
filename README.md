@@ -1,6 +1,57 @@
-# Smartoken — 面向终端的任务感知模型路由器（M1 脚手架）
+# Smartoken — 面向终端的任务感知模型路由器（v0.1）
 
 设计文档见 [`v1-design.md`](v1-design.md)；竞品源码参考在 [`research/refs/`](research/refs/)。
+
+---
+
+## 🧪 给测试者（v0.1 Developer Preview）
+
+> Smartoken 是 **BYO-模型** 产品：它自己不内置大模型，而是把**你本机的模型/你自己的云端 key** 接入一个智能路由器 —— 简单任务走便宜/本地模型，复杂任务才调旗舰。请自备模型源（下文第 4 步）。
+
+### 1. 获取源码
+```bash
+git clone https://github.com/LIN-LAB-AI/smartoken.git
+cd smartoken
+```
+（不会 git 就直接在仓库页 **Code → Download ZIP** 解压。）
+
+### 2. 安装（需 Python 3.11+）
+```bash
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+pip install -e ".[gui]"
+```
+网络慢可加国内源：`pip install -e ".[gui]" -i https://pypi.tuna.tsinghua.edu.cn/simple`
+
+### 3. 启动图形界面
+```bash
+smartoken-gui        # 若命令不可用：python -m smartoken_gui.app
+```
+窗口三页：**①服务/API 接入**（启动/停止、生成你的接入 Key）→ **②模型与策略**（增删/启停/测试你的模型源、策略 auto/自定义）→ **③用量看板**（实时 + 历史 token/花费/节省，深色图表）。
+
+### 4. 接入模型源（三选一，或都用）
+| 方式 | 做法 |
+|------|------|
+| **A. 本地 Ollama（最省事）** | 安装 Ollama → `ollama pull qwen2.5:7b` → GUI ②页确认 `ollama-local` 启用/点"测试"变绿 |
+| **B. 本地 OpenAI 兼容**（llama.cpp/LM Studio…） | GUI ②页「＋新建模型」：档位 local → base_url 填 `http://127.0.0.1:端口/v1`、默认模型名 |
+| **C. 国产云端（自带 key）** | GUI ②页「＋新建」或编辑现有模板：DeepSeek=`https://api.deepseek.com/v1`(deepseek-chat) / 智谱 GLM=`https://open.bigmodel.cn/api/paas/v4`(glm-4.5) / 通义=`https://dashscope.aliyuncs.com/compatible-mode/v1`；Key 在行内"选中行：密钥"里保存（只存本机 `.env`，不入库） |
+
+保存后点「探测全部状态」：灯 🟢=可路由、🟡=启用但连不上、🔴=停用。然后 ①页「启动服务」，模型栏填 `smartoken-auto`（虚拟路由模型）或真实模型名，即可用任意 OpenAI 兼容客户端（Cline / Cherry Studio / OpenWebUI…）或 curl 连 `http://127.0.0.1:8787/v1` 体验。
+
+### 5. 常见问题
+- **所有请求都报 no_route / 黄灯**：你的模型源没就绪——本地 Ollama 没装/没拉模型，或云端 key 没填对。先按第 4 步任一方式配好一个再试。
+- **想先只看 UI**：不配模型也能开 GUI，启动服务后空跑会看到 no_route 提示（审计照记）。
+- **8787 被占用**：改 `config/router.yaml` 的 `server.port`。
+- **关窗口服务就停**：托盘驻留功能尚未上线（v0.2），先用别关或点 ①「停止」。
+- **看不懂某条审计**：把 `data-dev/audit/<日期>.ndjson` 里对应行贴到 Issues（去掉业务内容，它只含模型/决策元数据，无对话原文）。
+
+### 6. 隐私与使用须知
+- 请求只发给你配置的模型后端；识别与决策全程本地；审计只存本机、**不含对话原文**。
+- 你的 `.env`（真实密钥）已在 `.gitignore` 排除——**不要把它提交或发给任何人**。
+- 本项目当前**未附开源许可**：仅供评估测试，请勿再分发/商用。
+- 测试中发现 bug 或想提需求 → 仓库 **Issues** 反馈，注明：操作系统、Python 版本、报错文本、审计行。
+
+---
 
 ## M1 范围（本仓库当前代码）
 
